@@ -1,15 +1,15 @@
 package code;
 
 public class ApplicationService implements Runnable {
-    
-    private SocketService csService;
+
+    private MutexService mutexService;
     private int meanInterRequestDelay; // T2
     private int meanCsExecutionTime; // T3
     private int numberOfRequests; // T4
 
-    public ApplicationService(SocketService csService, int meanInterRequestDelay, int meanCsExecutionTime,
+    public ApplicationService(MutexService mutexService, int meanInterRequestDelay, int meanCsExecutionTime,
             int numberOfRequests) {
-        this.csService = csService;
+        this.mutexService = mutexService;
         this.meanInterRequestDelay = meanInterRequestDelay;
         this.meanCsExecutionTime = meanCsExecutionTime;
         this.numberOfRequests = numberOfRequests;
@@ -18,30 +18,31 @@ public class ApplicationService implements Runnable {
     @Override
     public void run() {
         int requests = 0;
-        try{
-        while(requests < numberOfRequests) {
-            requests++;
+        try {
+            while (requests < numberOfRequests) {
+                requests++;
 
-            // csService.enter_cs()
+                mutexService.csEnter();
 
-            executeCS();
+                executeCS(requests);
 
-            // csService.exit_cs()
+                mutexService.csLeave();
 
-            // Wait for duration before next request
-            // TODO: exponential distribution
-            Thread.sleep(meanInterRequestDelay);
+                // Wait for duration before next request
+                // TODO: exponential distribution
+                Thread.sleep(meanInterRequestDelay);
 
-        }
-        } catch(InterruptedException e) {
+            }
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    private void executeCS() throws InterruptedException {
+    private void executeCS(int requestNumber) throws InterruptedException {
         // Simulating CS execution
         // TODO: exponential distribution
         Thread.sleep(meanCsExecutionTime);
+        System.out.println("Completed CS Request #" + requestNumber);
     }
-    
+
 }

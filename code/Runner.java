@@ -52,6 +52,8 @@ public class Runner {
             System.out.println("\n****CURRENT NODE****");
             currentNode.printConfig();
 
+            MutexService mutexService = MutexService.getService(protocol, nodes);
+
             System.out.println("\n*****Starting connectivity activies*****");
             CountDownLatch latch = new CountDownLatch(2);
             // boolean initializeAsActive = nodeId == Constants.BASE_NODE;
@@ -91,8 +93,8 @@ public class Runner {
             System.out.println("*****CONNECTIONS READY*****\n");
 
             Thread.sleep(6000); // TODO: waiting for other nodes to also connect if delayed
-            Thread applicationThread = new Thread(new SocketService(currentNode, nodes,
-            latch), "APPL-SRVC");
+            Thread applicationThread = new Thread(new ApplicationService(mutexService,
+                    meanInterRequestDelay, meanCsExecutionTime, numberOfRequests), "APPL-SRVC");
             applicationThread.start();
 
             // Wait for all application requests to finish
@@ -100,7 +102,6 @@ public class Runner {
 
             // Wait for all local CS requests to finish
             // TODO: csService.shutdown();
-
 
             // if (currentNode.getParent() == null) {
             // Thread.sleep(10000);

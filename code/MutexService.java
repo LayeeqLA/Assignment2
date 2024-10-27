@@ -1,8 +1,15 @@
 package code;
 
+import java.util.List;
+
 public abstract class MutexService {
 
     private static MutexService service = null;
+    private static List<Node> allNodes = null;
+
+    public MutexService(List<Node> nodes) {
+        allNodes = nodes;
+    }
 
     public static boolean validateMutexProtocolString(String protocolString) {
         assert protocolString != null;
@@ -14,11 +21,11 @@ public abstract class MutexService {
         }
     }
 
-    public static MutexService getService(String protocolString) {
+    public static MutexService getService(String protocolString, List<Node> nodes) {
         if (MutexProtocol.valueOf(protocolString.toUpperCase()) == MutexProtocol.RC) {
-            service = new RoucairolCarvalho();
+            service = new RoucairolCarvalho(nodes);
         } else if (MutexProtocol.valueOf(protocolString.toUpperCase()) == MutexProtocol.RA) {
-            service = new RicartAgrawala();
+            service = new RicartAgrawala(nodes);
         }
         return service;
     }

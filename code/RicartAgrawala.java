@@ -1,18 +1,24 @@
 package code;
 
-public class RicartAgrawala extends MutexService{
+import java.util.List;
+
+public class RicartAgrawala extends MutexService {
+
+    public RicartAgrawala(List<Node> nodes) {
+        super(nodes);
+        // TODO Auto-generated constructor stub
+    }
 
     @Override
     public void csEnter() {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'csEnter'");
+        System.out.println("Unimplemented method 'csEnter'");
     }
 
     @Override
     public void csLeave() {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'csLeave'");
+        System.out.println("Unimplemented method 'csLeave'");
     }
 
-    
 }
