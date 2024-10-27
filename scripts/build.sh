@@ -8,7 +8,8 @@
 # compilation command [CHANGE THIS to match your project files]
 
 # Root directory of project [CHANGE THIS]
-PROJDIR=/home/012/l/lx/lxa230013/aos/Assignment1
+# PROJDIR=/home/012/l/lx/lxa230013/aos/Assignment2
+PROJDIR=/mnt/c/Users/layqa/Desktop/2024_Fall/CS6378-AOS/AdvOS-Assignments/Assignment2
 
 # Directory your compiled classes are in [CHANGE THIS if you move the classes]
 BINDIR=$PROJDIR/bin

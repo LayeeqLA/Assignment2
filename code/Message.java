@@ -15,7 +15,6 @@ public class Message implements Serializable {
     private MessageType mType;
     private Integer data;
     private VectorClock clock;
-    private List<StateRecord> stateRecords;
 
     public Message(Integer sender, MessageType mType, Integer data, VectorClock clock) {
         // For APP
@@ -31,12 +30,12 @@ public class Message implements Serializable {
         this.mType = mType;
     }
 
-    public Message(Integer sender, MessageType mType, List<StateRecord> records) {
-        // For Marker or Convergecast
-        this.sender = sender;
-        this.mType = mType;
-        this.stateRecords = records;
-    }
+    // public Message(Integer sender, MessageType mType, List<StateRecord> records) {
+    //     // For Marker or Convergecast
+    //     this.sender = sender;
+    //     this.mType = mType;
+    //     this.stateRecords = records;
+    // }
 
     public enum MessageType {
         APP,
@@ -73,10 +72,6 @@ public class Message implements Serializable {
 
     public VectorClock getClock() {
         return clock;
-    }
-
-    public List<StateRecord> getStateRecords() {
-        return stateRecords;
     }
 
     // Convert current instance of Message to ByteBuffer
@@ -132,10 +127,10 @@ public class Message implements Serializable {
             case FINISH:
                 System.out.println("Sender: " + sender + " MsgType: " + mType);
                 break;
-            case CC:
-                System.out.println("Sender: " + sender + " MsgType: " + mType + " StateRecords: "
-                        + stateRecords.stream().map(StateRecord::toString).collect(Collectors.joining()));
-                break;
+            // case CC:
+            //     System.out.println("Sender: " + sender + " MsgType: " + mType + " StateRecords: "
+            //             + stateRecords.stream().map(StateRecord::toString).collect(Collectors.joining()));
+            //     break;
         }
     }
 
@@ -149,11 +144,11 @@ public class Message implements Serializable {
             case FINISH:
                 System.out.println("Sender: " + sender + " MsgType: " + mType + postfix);
                 break;
-            case CC:
-                System.out.println("Sender: " + sender + " MsgType: " + mType
-                        + " StateRecords: "
-                        + stateRecords.stream().map(StateRecord::toString).collect(Collectors.joining()) + postfix);
-                break;
+            // case CC:
+            //     System.out.println("Sender: " + sender + " MsgType: " + mType
+            //             + " StateRecords: "
+            //             + stateRecords.stream().map(StateRecord::toString).collect(Collectors.joining()) + postfix);
+            //     break;
         }
     }
 

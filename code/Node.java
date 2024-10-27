@@ -15,8 +15,8 @@ public class Node {
     private String host;
     private int port;
     private SctpChannel channel;
-    // private int[] neighborIds;
-    // private List<Node> neighbors;
+    private int[] neighborIds;
+    private List<Node> neighbors;
     private Node parent;
     private List<Node> children;
     private int[] childrenIds;
@@ -54,9 +54,13 @@ public class Node {
         this.channel = channel;
     }
 
-    // public int[] getNeighborIds() {
-    //     return neighborIds;
-    // }
+    public int[] getNeighborIds() {
+        return neighborIds;
+    }
+
+    public void setNeighborIds(int[] neighborIds) {
+        this.neighborIds = neighborIds;
+    }
 
     public Node getParent() {
         return parent;
@@ -89,8 +93,8 @@ public class Node {
     }
 
     public void printConfig() {
-        System.out.println("ID: " + id + " HOST: " + host + " PORT: " + port);
-                // + " Neighbors: " + Arrays.toString(neighborIds));
+        System.out.println("ID: " + id + " HOST: " + host + " PORT: " + port
+                + " Neighbors: " + Arrays.toString(neighborIds));
     }
 
     public void printConvergeCast() {
@@ -98,25 +102,21 @@ public class Node {
                 + " Children: " + Arrays.toString(childrenIds));
     }
 
-    // public void addNeighborIds(String allNeighbors) {
-    //     neighborIds = Arrays.stream(allNeighbors.split(" ")).mapToInt(Integer::parseInt).toArray();
-    // }
-
-    // public void setNeighbors(List<Node> nodes) {
-    //     this.neighbors = Arrays.stream(neighborIds).mapToObj(nodes::get).collect(Collectors.toList());
-    // }
+    public void setNeighbors(List<Node> nodes) {
+        this.neighbors = Arrays.stream(neighborIds).mapToObj(nodes::get).collect(Collectors.toList());
+    }
 
     public static Node getNodeById(List<Node> nodes, int nodeId) {
         return nodes.stream().filter(n -> n.getId() == nodeId).findFirst().orElseGet(null);
     }
 
-    // public List<Node> getNeighbors() {
-    //     return neighbors;
-    // }
+    public List<Node> getNeighbors() {
+        return neighbors;
+    }
 
-    // public int getNeighborCount() {
-    //     return neighborIds.length;
-    // }
+    public int getNeighborCount() {
+        return neighborIds.length;
+    }
 
     public int getChildrenCount() {
         return childrenIds.length;

@@ -1,2 +1,7 @@
 // TEMPORARY COMMANDS FILE before other .sh files are updated
 
+// building -> use: `scripts/build.sh` with path pointing to project folder in local system
+
+java -ea -cp ./bin code.Runner /mnt/c/Users/layqa/Desktop/2024_Fall/CS6378-AOS/AdvOS-Assignments/Assignment2/config-test.txt RC 0
+java -ea -cp ./bin code.Runner /mnt/c/Users/layqa/Desktop/2024_Fall/CS6378-AOS/AdvOS-Assignments/Assignment2/config-test.txt RC 1
+java -ea -cp ./bin code.Runner /mnt/c/Users/layqa/Desktop/2024_Fall/CS6378-AOS/AdvOS-Assignments/Assignment2/config-test.txt RC 2

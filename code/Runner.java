@@ -13,6 +13,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.sun.nio.sctp.MessageInfo;
 import com.sun.nio.sctp.SctpChannel;
@@ -29,7 +30,7 @@ public class Runner {
         System.out.println("*****Initializing Service*****");
 
         if (args.length != 3) {
-            System.err.println("Need exactly TWO args!");
+            System.err.println("Need exactly THREE args!");
             System.exit(-1);
         }
 
@@ -54,12 +55,13 @@ public class Runner {
             System.out.println("\n*****Starting connectivity activies*****");
             CountDownLatch latch = new CountDownLatch(2);
             // boolean initializeAsActive = nodeId == Constants.BASE_NODE;
-            LocalState localState = new LocalState(0, false, nodeCount);
-            Thread receiverThread = new Thread(new SocketService(currentNode,
-                    latch, localState), "RECV-SRVC");
+            // LocalState localState = new LocalState(0, false, nodeCount);
+            Thread receiverThread = new Thread(new SocketService(currentNode, nodes,
+                    latch), "RECV-SRVC");
+            // TODO: add param MutexService?
             receiverThread.start();
 
-            for (Node node : nodes) {
+            for (Node node : currentNode.getNeighbors()) {
                 int attempts = 0;
                 while (node.getChannel() == null && attempts < Constants.CONNECT_MAX_ATTEMPTS) {
                     try {
@@ -95,9 +97,6 @@ public class Runner {
             // "SNAP-SRVC").start();
             // }
 
-            
-
-
             /*
              * [TODO: can this before delay?]
              * START HERE FOR ASSIGNMENT 2
@@ -106,7 +105,7 @@ public class Runner {
              */
 
             // WAIT FOR SNAPSHOT TO INFORM TERMINATION OF SYSTEM
-            localState.getTerminationLatch().await();
+            // localState.getTerminationLatch().await();
 
             if (currentNode.getParent() == null) {
                 // ROOT sends FINISH to terminate the system
@@ -133,9 +132,10 @@ public class Runner {
 
             System.out.println("\n*****END*****\n\n");
 
-            if (currentNode.getParent() == null) {
-                ConsistencyChecker.checkGlobalStateConsistency(nodeCount, configPath);
-            }
+            // TODO: Replace with CS safety checker
+            // if (currentNode.getParent() == null) {
+            // ConsistencyChecker.checkGlobalStateConsistency(nodeCount, configPath);
+            // }
 
         } catch (NumberFormatException | IOException | InterruptedException | ClassNotFoundException e) {
             System.err.println("xxxxx---Processing error occured---xxxxx");
@@ -194,15 +194,18 @@ public class Runner {
             }
         }
 
+        Node currentNode = Node.getNodeById(nodes, currentNodeId);
+        currentNode.setNeighborIds(IntStream.rangeClosed(0, nodeCount - 1)
+                .filter(id -> id != currentNodeId).toArray());
+        currentNode.setNeighbors(nodes);
+
         // constructConvergeCastTree(nodes, currentNodeId);
+        // currentNode.printConvergeCast();
 
         System.out.println("***PRINTING NODE CONFIG***");
         for (Node node : nodes) {
             node.printConfig();
         }
-
-        Node currentNode = Node.getNodeById(nodes, currentNodeId);
-        // currentNode.printConvergeCast();
 
         // generate outputPath for this node
         outputPath = configPath;
@@ -213,7 +216,6 @@ public class Runner {
         System.out.println("Output file location: " + outputPath);
         currentNode.initWriter(outputPath);
 
-        // currentNode.setNeighbors(nodes);
         return nodes;
     }
 
