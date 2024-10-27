@@ -1,6 +1,6 @@
 package code;
 
-public class MutexService {
+public abstract class MutexService {
 
     private static MutexService service = null;
 
@@ -15,9 +15,17 @@ public class MutexService {
     }
 
     public static MutexService getService(String protocolString) {
-        System.out.println("TBD");
+        if (MutexProtocol.valueOf(protocolString.toUpperCase()) == MutexProtocol.RC) {
+            service = new RoucairolCarvalho();
+        } else if (MutexProtocol.valueOf(protocolString.toUpperCase()) == MutexProtocol.RA) {
+            service = new RicartAgrawala();
+        }
         return service;
     }
+
+    public abstract void csEnter();
+
+    public abstract void csLeave();
 
     private enum MutexProtocol {
         RC, // Roucairol and Carvalho’s

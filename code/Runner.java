@@ -90,6 +90,18 @@ public class Runner {
             latch.await();
             System.out.println("*****CONNECTIONS READY*****\n");
 
+            Thread.sleep(6000); // TODO: waiting for other nodes to also connect if delayed
+            Thread applicationThread = new Thread(new SocketService(currentNode, nodes,
+            latch), "APPL-SRVC");
+            applicationThread.start();
+
+            // Wait for all application requests to finish
+            applicationThread.join();
+
+            // Wait for all local CS requests to finish
+            // TODO: csService.shutdown();
+
+
             // if (currentNode.getParent() == null) {
             // Thread.sleep(10000);
             // SnapshotStarter.snapshotDelay = snapshotDelay;
