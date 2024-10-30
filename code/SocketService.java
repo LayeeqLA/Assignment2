@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import com.sun.nio.sctp.MessageInfo;
 import com.sun.nio.sctp.SctpChannel;
 import com.sun.nio.sctp.SctpServerChannel;
 
@@ -78,7 +77,6 @@ public class SocketService implements Runnable {
         public void run() {
             try {
                 int pid = -1;
-
                 latch.await(); // wait for send connections to be ready
 
                 boolean receiving = true;
@@ -115,6 +113,7 @@ public class SocketService implements Runnable {
                                 receiving = false;
                                 break;
                         }
+                        mutexService.printCurrentClock();
                     }
                 }
                 System.out.println("FINISHED RECEIVING MESSAGES FOR: " + Thread.currentThread().getName());

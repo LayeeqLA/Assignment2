@@ -17,6 +17,7 @@ public class RoucairolCarvalho extends MutexService {
     @Override
     public void csEnter() throws IOException, ClassNotFoundException {
         synchronized (this) {
+            assert !csExecuting.get();  // should not be executing
             csCurrentRequestTime = clock.getCurrent(); // mark clock when the CS request was observed
             csRequestPending.set(true);
             // assert no existing CS on this node
@@ -28,12 +29,12 @@ public class RoucairolCarvalho extends MutexService {
         }
 
         // Block until all keys are received
-        while (!checkIfAllKeysReceived())
-            ;
+        while (!checkIfAllKeysReceived());
     }
 
     @Override
     public synchronized void csLeave() throws ClassNotFoundException, IOException {
+        assert csExecuting.getAndSet(false);    // should be executing before stoping
         csInfo.setEnd(clock.incrementAndGet());
         csInfo.print();
         // TODO: Flush csInfo to a file writing thread???
@@ -78,11 +79,16 @@ public class RoucairolCarvalho extends MutexService {
             // defer the reply to this message's sender
             deferredReplies.add(senderId);
         }
+
+        // TODO: verify this logic [if we need to increment if we receive a request]
+        // TODO: I think we need two clocks for REQUEST message, one is CS clock and one is system sync clock
+        clock.mergeMessageClockAndIncrement(message.getClock());
     }
 
     @Override
     public synchronized void processIncomingReply(Message message) {
         keys.put(message.getSender(), true);
+        clock.mergeMessageClockAndIncrement(message.getClock());
     }
 
 }

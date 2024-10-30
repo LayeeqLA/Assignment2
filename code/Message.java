@@ -7,13 +7,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class Message implements Serializable {
     private Integer sender;
     private MessageType msgType;
-    // private Integer data;
     private Long clock;
 
     public Message(Integer senderId, MessageType msgType, Long clock) {
@@ -45,14 +42,6 @@ public class Message implements Serializable {
     public void setMsgType(MessageType mType) {
         this.msgType = mType;
     }
-
-    // public Integer getData() {
-    //     return data;
-    // }
-
-    // public void setData(Integer data) {
-    //     this.data = data;
-    // }
 
     public Long getClock() {
         return clock;
@@ -110,10 +99,6 @@ public class Message implements Serializable {
             case FINISH:
                 System.out.println("Sender: " + sender + " MsgType: " + msgType);
                 break;
-            // case CC:
-            //     System.out.println("Sender: " + sender + " MsgType: " + mType + " StateRecords: "
-            //             + stateRecords.stream().map(StateRecord::toString).collect(Collectors.joining()));
-            //     break;
         }
     }
 
@@ -126,11 +111,6 @@ public class Message implements Serializable {
             case FINISH:
                 System.out.println("Sender: " + sender + " MsgType: " + msgType + postfix);
                 break;
-            // case CC:
-            //     System.out.println("Sender: " + sender + " MsgType: " + mType
-            //             + " StateRecords: "
-            //             + stateRecords.stream().map(StateRecord::toString).collect(Collectors.joining()) + postfix);
-            //     break;
         }
     }
 

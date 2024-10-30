@@ -114,4 +114,8 @@ public abstract class MutexService {
         deferredReplies.clear();
     }
 
+    public synchronized void printCurrentClock() {
+        System.out.println("CURRENT CLOCK---> " + clock.getCurrent());
+    }
+
 }

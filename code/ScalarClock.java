@@ -22,10 +22,10 @@ public class ScalarClock {
         return clock.get();
     }
 
-    public long mergeMessageClockAndIncrement(ScalarClock msgClock) {
-        if (msgClock.getCurrent() > this.clock.get()) {
+    public long mergeMessageClockAndIncrement(long msgClock) {
+        if (msgClock > this.clock.get()) {
             // if incoming message has higher value -> update this node's clock
-            this.clock.set(msgClock.getCurrent());
+            this.clock.set(msgClock);
         }
         return this.clock.incrementAndGet();
     }
