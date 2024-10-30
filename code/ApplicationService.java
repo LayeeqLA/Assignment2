@@ -35,7 +35,7 @@ public class ApplicationService implements Runnable {
                 Thread.sleep(meanInterRequestDelay);
 
             }
-        } catch (InterruptedException | IOException e) {
+        } catch (InterruptedException | IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

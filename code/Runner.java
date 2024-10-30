@@ -58,7 +58,7 @@ public class Runner {
             CountDownLatch latch = new CountDownLatch(2);
             // boolean initializeAsActive = nodeId == Constants.BASE_NODE;
             // LocalState localState = new LocalState(0, false, nodeCount);
-            Thread receiverThread = new Thread(new SocketService(currentNode, nodes,
+            Thread receiverThread = new Thread(new SocketService(currentNode,
                     mutexService, latch), "RECV-SRVC");
             // TODO: add param MutexService?
             receiverThread.start();

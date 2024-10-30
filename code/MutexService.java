@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.sun.nio.sctp.MessageInfo;
+
 public abstract class MutexService {
 
     private static MutexService service;
@@ -15,7 +17,10 @@ public abstract class MutexService {
     protected List<Node> allNodes;
     protected Map<Integer, Boolean> keys;
     protected List<Integer> deferredReplies;
-    protected AtomicBoolean executingCS;
+    protected AtomicBoolean csExecuting; // true if node is currently in CS
+    protected AtomicBoolean csRequestPending; // true if application has made CS request but not yet fulfilled
+    protected Long csCurrentRequestTime;
+    protected CritSecInfo csInfo; // TODO: merge csCurrentRequestTime into csInfo?
 
     protected MutexService(List<Node> nodes, Node currentNode) {
         this.allNodes = nodes;
@@ -23,7 +28,9 @@ public abstract class MutexService {
         this.clock = new ScalarClock();
         this.keys = new ConcurrentHashMap<>();
         this.deferredReplies = new ArrayList<>();
-        this.executingCS = new AtomicBoolean(false);
+        this.csExecuting = new AtomicBoolean(false);
+        this.csRequestPending = new AtomicBoolean(false);
+        this.csInfo = null;
     }
 
     public static boolean validateMutexProtocolString(String protocolString) {
@@ -51,24 +58,25 @@ public abstract class MutexService {
         ;
     }
 
-    public abstract void csEnter() throws IOException;
+    public abstract void csEnter() throws IOException, ClassNotFoundException;
 
-    public abstract void csLeave() throws IOException;
+    public abstract void csLeave() throws IOException, ClassNotFoundException;
 
-    public abstract void processIncomingRequest(Message message);
+    public abstract void processIncomingRequest(Message message) throws ClassNotFoundException, IOException;
 
     public abstract void processIncomingReply(Message message);
 
     protected synchronized boolean checkIfAllKeysReceived() {
         for (Boolean keyAvailable : keys.values()) {
             if (!keyAvailable) {
-                return false;   // atleast one key still not received
+                return false; // atleast one key still not received
             }
         }
 
         // Reach here => all keys are received
         // mark start of CS execution
-        executingCS.set(true);
+        csExecuting.set(true);
+        csInfo = new CritSecInfo(currentNode.getId(), clock.incrementAndGet());
         return true;
     }
 
@@ -81,8 +89,29 @@ public abstract class MutexService {
         System.out.println("TEST RCA: " + validateMutexProtocolString("RCA"));
     }
 
-    protected void sendMessageToNode(Message msg, int nodeId) throws IOException {
-        Node.getNodeById(allNodes, nodeId).getChannel().send(null, null);
+    protected synchronized void sendMessageToNode(Message msg, int destinationNodeId)
+            throws IOException, ClassNotFoundException {
+        MessageInfo messageInfo = MessageInfo.createOutgoing(null, 0);
+        Node.getNodeById(allNodes, destinationNodeId).getChannel().send(msg.toByteBuffer(), messageInfo);
+    }
+
+    protected synchronized void sendReply(int destinationNodeId) throws IOException, ClassNotFoundException {
+        // increment clock first for piggyback
+        Message reply = new Message(currentNode.getId(), Message.MessageType.REPLY, clock.incrementAndGet());
+        sendMessageToNode(reply, destinationNodeId);
+    }
+
+    protected synchronized void sendRequest(int destinationNodeId) throws IOException, ClassNotFoundException {
+        clock.incrementAndGet(); // increment first for piggyback
+        Message reply = new Message(currentNode.getId(), Message.MessageType.REQUEST, csCurrentRequestTime);
+        sendMessageToNode(reply, destinationNodeId);
+    }
+
+    protected synchronized void sendDeferredReplies() throws IOException, ClassNotFoundException {
+        for (int destinationNodeId : deferredReplies) {
+            sendReply(destinationNodeId);
+        }
+        deferredReplies.clear();
     }
 
 }

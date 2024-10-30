@@ -1,24 +1,28 @@
 package code;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ScalarClock {
 
-    private AtomicInteger clock;
+    private AtomicLong clock;
 
     public ScalarClock() {
-        clock = new AtomicInteger();
+        clock = new AtomicLong();
     }
 
-    public int incrementAndGet() {
+    public ScalarClock(long messageClock) {
+        clock = new AtomicLong(messageClock);
+    }
+
+    public long incrementAndGet() {
         return clock.incrementAndGet();
     }
 
-    public int getCurrent() {
+    public long getCurrent() {
         return clock.get();
     }
 
-    public int mergeMessageClockAndIncrement(ScalarClock msgClock) {
+    public long mergeMessageClockAndIncrement(ScalarClock msgClock) {
         if (msgClock.getCurrent() > this.clock.get()) {
             // if incoming message has higher value -> update this node's clock
             this.clock.set(msgClock.getCurrent());

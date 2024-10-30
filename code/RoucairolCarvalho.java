@@ -15,47 +15,74 @@ public class RoucairolCarvalho extends MutexService {
     }
 
     @Override
-    public void csEnter() throws IOException {
+    public void csEnter() throws IOException, ClassNotFoundException {
         synchronized (this) {
-            // TODO: Capture CS start
+            csCurrentRequestTime = clock.getCurrent(); // mark clock when the CS request was observed
+            csRequestPending.set(true);
             // assert no existing CS on this node
             for (Map.Entry<Integer, Boolean> nodeKV : keys.entrySet()) {
                 if (nodeKV.getValue() == false) {
-                    clock.incrementAndGet();
-                    sendMessageToNode(new Message(currentNode.getId(), Message.MessageType.REQUEST, clock),
-                            nodeKV.getKey());
+                    sendRequest(nodeKV.getKey());
                 }
             }
         }
 
         // Block until all keys are received
-        while (!checkIfAllKeysReceived());
+        while (!checkIfAllKeysReceived())
+            ;
     }
 
     @Override
-    public synchronized void csLeave() {
-        // TODO Auto-generated method stub
-        System.out.println("Unimplemented method 'csLeave'");
+    public synchronized void csLeave() throws ClassNotFoundException, IOException {
+        csInfo.setEnd(clock.incrementAndGet());
+        csInfo.print();
+        // TODO: Flush csInfo to a file writing thread???
+
+        // reset CS details
+        csInfo = null;
+        csCurrentRequestTime = null;
+
+        sendDeferredReplies();
     }
 
     @Override
-    public synchronized void processIncomingRequest(Message message) {
-        if(executingCS.get()) {
+    public synchronized void processIncomingRequest(Message message) throws ClassNotFoundException, IOException {
+        int senderId = message.getSender();
+
+        if (csExecuting.get()) {
             // currently executing CS; defer the reply to this message's sender
-            deferredReplies.add(message.getSender());
+            deferredReplies.add(senderId);
             return;
         }
-        
-        
 
-        // TODO Auto-generated method stub
-        System.out.println("Unimplemented method 'processIncomingRequest'");
+        if (!csRequestPending.get()) {
+            // no pending CS request at this node; can send REPLY back immediately
+            assert csRequestPending == null;
+            sendReply(senderId);
+            return;
+        }
+
+        assert csCurrentRequestTime != null;
+        if (message.getClock() < csCurrentRequestTime) {
+            // incoming request has lower TS, allow it to execute first
+            sendReply(senderId);
+            // send request again to this node to get back key
+            sendRequest(senderId);
+        } else if (message.getClock() == csCurrentRequestTime && senderId < currentNode.getId()) {
+            // if same timestamp, tie break using node ID => lower ID has more priority
+            sendReply(senderId);
+            // send request again to this node to get back key
+            sendRequest(senderId);
+        } else {
+            // this node's request has more priority
+            // defer the reply to this message's sender
+            deferredReplies.add(senderId);
+        }
     }
 
     @Override
     public synchronized void processIncomingReply(Message message) {
-        // TODO Auto-generated method stub
-        System.out.println("Unimplemented method 'processIncomingReply'");
+        keys.put(message.getSender(), true);
     }
 
 }
