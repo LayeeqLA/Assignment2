@@ -17,23 +17,21 @@ import com.sun.nio.sctp.SctpServerChannel;
 public class SocketService implements Runnable {
 
     private Node thisNode;
-    private List<Node> allNodes;
+    private List<Node> allNodes;    // remove this -> use from MutexService
     private CountDownLatch latch;
-    // private LocalState localState;
+    private MutexService mutexService;
     private List<Thread> neighborThreads;
-    private Map<Integer, Integer> receivedInfo;
 
-    public SocketService(Node thisNode, List<Node> allNodes, CountDownLatch latch) {
+    public SocketService(Node thisNode, List<Node> allNodes, MutexService mutexService, CountDownLatch latch) {
         this.thisNode = thisNode;
         this.allNodes = allNodes;
         this.latch = latch;
-        // this.localState = state;
+        this.mutexService = mutexService;
     }
 
     @Override
     public void run() {
         neighborThreads = new ArrayList<>();
-        receivedInfo = new ConcurrentHashMap<>();
 
         // SETUP SERVER
         InetSocketAddress addr = new InetSocketAddress(thisNode.getPort());
@@ -45,7 +43,7 @@ public class SocketService implements Runnable {
 
             for (int i = 0; i < thisNode.getNeighborCount(); i++) {
                 SctpChannel clientConnection = ssc.accept();
-                Thread clientThread = new Thread(new ClientHandler(thisNode, clientConnection, receivedInfo,
+                Thread clientThread = new Thread(new ClientHandler(thisNode, clientConnection, mutexService,
                         latch));
                 clientThread.start();
                 neighborThreads.add(clientThread);
@@ -74,14 +72,14 @@ public class SocketService implements Runnable {
 
         private final Node currentNode;
         private final SctpChannel channel;
-        private Map<Integer, Integer> receivedData;
+        private final MutexService mutexService;
         private final CountDownLatch latch;
 
-        public ClientHandler(Node currentNode, SctpChannel channel, Map<Integer, Integer> receivedData,
+        public ClientHandler(Node currentNode, SctpChannel channel, MutexService mutexService,
                 CountDownLatch latch) {
             this.currentNode = currentNode;
             this.channel = channel;
-            this.receivedData = receivedData;
+            this.mutexService = mutexService;
             this.latch = latch;
         }
 
@@ -111,10 +109,17 @@ public class SocketService implements Runnable {
                         assert pid == message.getSender();
                         // SHOULD RECEIVE SAME SENDER PID ON A SINGLE THREAD
                     }
-                    // synchronized (localState) {
+                    synchronized (mutexService) {
                         System.out.println("Received message");
                         message.print();
-                        // switch (message.getmType()) {
+                        switch (message.getmType()) {
+                            case REQUEST:
+                                mutexService.processIncomingRequest(message);
+                                break;
+                            case REPLY:
+                                mutexService.processIncomingReply(message);
+                                // do something;
+                                break;
                         //     case APP:
                         //         VectorClock messageClock = message.getClock();
                         //         localState.getClock().mergeMessageClockAndIncrement(messageClock,
@@ -192,11 +197,11 @@ public class SocketService implements Runnable {
                         //         currentNode.closeFileWriter();
                         //         break;
 
-                        //     default:
-                        //         System.out.println(message.getmType() + " unexpected!");
-                        //         break;
-                        // }
-                    // }
+                            default:
+                                System.out.println(message.getmType() + " unexpected!");
+                                break;
+                        }
+                    }
                 }
                 System.out.println("FINISHED RECEIVING MESSAGES FOR: " + Thread.currentThread().getName());
             } catch (IOException | ClassNotFoundException | InterruptedException e) {

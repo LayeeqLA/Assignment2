@@ -13,34 +13,18 @@ import java.util.stream.Collectors;
 public class Message implements Serializable {
     private Integer sender;
     private MessageType mType;
-    private Integer data;
-    private VectorClock clock;
+    // private Integer data;
+    private ScalarClock clock;
 
-    public Message(Integer sender, MessageType mType, Integer data, VectorClock clock) {
-        // For APP
-        this.sender = sender;
-        this.mType = mType;
-        this.data = data;
+    public Message(Integer senderId, MessageType msgType, ScalarClock clock) {
+        this.sender = senderId;
+        this.mType = msgType;
         this.clock = clock;
     }
 
-    public Message(Integer sender, MessageType mType) {
-        // For Marker or Convergecast
-        this.sender = sender;
-        this.mType = mType;
-    }
-
-    // public Message(Integer sender, MessageType mType, List<StateRecord> records) {
-    //     // For Marker or Convergecast
-    //     this.sender = sender;
-    //     this.mType = mType;
-    //     this.stateRecords = records;
-    // }
-
     public enum MessageType {
-        APP,
-        MARKER,
-        CC,
+        REQUEST,
+        REPLY,
         FINISH,
         ;
 
@@ -62,15 +46,15 @@ public class Message implements Serializable {
         this.mType = mType;
     }
 
-    public Integer getData() {
-        return data;
-    }
+    // public Integer getData() {
+    //     return data;
+    // }
 
-    public void setData(Integer data) {
-        this.data = data;
-    }
+    // public void setData(Integer data) {
+    //     this.data = data;
+    // }
 
-    public VectorClock getClock() {
+    public ScalarClock getClock() {
         return clock;
     }
 
@@ -119,11 +103,10 @@ public class Message implements Serializable {
 
     public void print() {
         switch (mType) {
-            case APP:
-                System.out.println("Sender: " + sender + " MsgType: " + mType
-                        + " Data: " + data + " Clock: " + clock.toString());
+            case REQUEST:
+            case REPLY:
+                System.out.println("Sender: " + sender + " MsgType: " + mType + " Clock: " + clock);
                 break;
-            case MARKER:
             case FINISH:
                 System.out.println("Sender: " + sender + " MsgType: " + mType);
                 break;
@@ -136,11 +119,10 @@ public class Message implements Serializable {
 
     public void print(String postfix) {
         switch (mType) {
-            case APP:
-                System.out.println("Sender: " + sender + " MsgType: " + mType
-                        + " Data: " + data + " Clock: " + clock.toString() + postfix);
+            case REQUEST:
+            case REPLY:
+                System.out.println("Sender: " + sender + " MsgType: " + mType + " Clock: " + clock + postfix);
                 break;
-            case MARKER:
             case FINISH:
                 System.out.println("Sender: " + sender + " MsgType: " + mType + postfix);
                 break;

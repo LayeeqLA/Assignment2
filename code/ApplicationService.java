@@ -1,5 +1,7 @@
 package code;
 
+import java.io.IOException;
+
 public class ApplicationService implements Runnable {
 
     private MutexService mutexService;
@@ -33,7 +35,7 @@ public class ApplicationService implements Runnable {
                 Thread.sleep(meanInterRequestDelay);
 
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
     }

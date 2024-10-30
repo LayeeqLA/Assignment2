@@ -1,14 +1,23 @@
 package code;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class MutexService {
 
-    private static MutexService service = null;
-    private static List<Node> allNodes = null;
+    private static MutexService service;
+    protected ScalarClock clock;
+    protected Node currentNode;
+    protected List<Node> allNodes;
+    protected Map<Integer, Boolean> keys;
 
-    public MutexService(List<Node> nodes) {
-        allNodes = nodes;
+    protected MutexService(List<Node> nodes, Node currentNode) {
+        this.allNodes = nodes;
+        this.currentNode = currentNode;
+        this.clock = new ScalarClock();
+        this.keys = new ConcurrentHashMap<>();
     }
 
     public static boolean validateMutexProtocolString(String protocolString) {
@@ -21,23 +30,38 @@ public abstract class MutexService {
         }
     }
 
-    public static MutexService getService(String protocolString, List<Node> nodes) {
+    public static MutexService getService(String protocolString, List<Node> nodes, Node currentNode) {
         if (MutexProtocol.valueOf(protocolString.toUpperCase()) == MutexProtocol.RC) {
-            service = new RoucairolCarvalho(nodes);
+            service = new RoucairolCarvalho(nodes, currentNode);
         } else if (MutexProtocol.valueOf(protocolString.toUpperCase()) == MutexProtocol.RA) {
-            service = new RicartAgrawala(nodes);
+            service = new RicartAgrawala(nodes, currentNode);
         }
         return service;
     }
-
-    public abstract void csEnter();
-
-    public abstract void csLeave();
 
     private enum MutexProtocol {
         RC, // Roucairol and Carvalho’s
         RA, // Ricart and Agrawala’s
         ;
+    }
+
+    public abstract void csEnter() throws IOException;
+
+    public abstract void csLeave() throws IOException;
+
+    public abstract void processIncomingRequest(Message message);
+
+    public abstract void processIncomingReply(Message message);
+
+    protected synchronized boolean checkIfAllKeysReceived() {
+        for (Boolean keyAvailable : keys.values()) {
+            if (!keyAvailable) {
+                return false;
+            }
+        }
+
+        // Reach here => all keys are received
+        return true;
     }
 
     public static void main(String[] args) {
@@ -47,6 +71,10 @@ public abstract class MutexService {
         System.out.println("TEST rc: " + validateMutexProtocolString("rc"));
         System.out.println("TEST rca: " + validateMutexProtocolString("rca"));
         System.out.println("TEST RCA: " + validateMutexProtocolString("RCA"));
+    }
+
+    protected void sendMessageToNode(Message msg, int nodeId) throws IOException {
+        Node.getNodeById(allNodes, nodeId).getChannel().send(null, null);
     }
 
 }

@@ -52,14 +52,14 @@ public class Runner {
             System.out.println("\n****CURRENT NODE****");
             currentNode.printConfig();
 
-            MutexService mutexService = MutexService.getService(protocol, nodes);
+            MutexService mutexService = MutexService.getService(protocol, nodes, currentNode);
 
             System.out.println("\n*****Starting connectivity activies*****");
             CountDownLatch latch = new CountDownLatch(2);
             // boolean initializeAsActive = nodeId == Constants.BASE_NODE;
             // LocalState localState = new LocalState(0, false, nodeCount);
             Thread receiverThread = new Thread(new SocketService(currentNode, nodes,
-                    latch), "RECV-SRVC");
+                    mutexService, latch), "RECV-SRVC");
             // TODO: add param MutexService?
             receiverThread.start();
 
@@ -81,7 +81,7 @@ public class Runner {
                 }
 
                 if (node.getChannel() == null) {
-                    System.err.println("Failed to establish connection with node id " + node.getId());
+                    System.err.println("Failed to establish connection with node id: " + node.getId());
                     throw new InterruptedException("CONNECTION SETUP FAILED");
                 }
             }
@@ -110,19 +110,12 @@ public class Runner {
             // "SNAP-SRVC").start();
             // }
 
-            /*
-             * [TODO: can this before delay?]
-             * START HERE FOR ASSIGNMENT 2
-             * (1) INITIALISE AND START MUTEX SERVICE
-             * (2) INITIALISE APPLICATION
-             */
-
             // WAIT FOR SNAPSHOT TO INFORM TERMINATION OF SYSTEM
             // localState.getTerminationLatch().await();
 
             if (currentNode.getParent() == null) {
                 // ROOT sends FINISH to terminate the system
-                Message finishMessage = new Message(currentNode.getId(), Message.MessageType.FINISH);
+                Message finishMessage = new Message(currentNode.getId(), Message.MessageType.FINISH, null);
                 for (Node node : currentNode.getChildren()) {
                     MessageInfo messageInfo = MessageInfo.createOutgoing(null, 0);
                     node.getChannel().send(finishMessage.toByteBuffer(), messageInfo);
