@@ -1,9 +1,11 @@
 package code;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class MutexService {
 
@@ -12,12 +14,16 @@ public abstract class MutexService {
     protected Node currentNode;
     protected List<Node> allNodes;
     protected Map<Integer, Boolean> keys;
+    protected List<Integer> deferredReplies;
+    protected AtomicBoolean executingCS;
 
     protected MutexService(List<Node> nodes, Node currentNode) {
         this.allNodes = nodes;
         this.currentNode = currentNode;
         this.clock = new ScalarClock();
         this.keys = new ConcurrentHashMap<>();
+        this.deferredReplies = new ArrayList<>();
+        this.executingCS = new AtomicBoolean(false);
     }
 
     public static boolean validateMutexProtocolString(String protocolString) {
@@ -56,11 +62,13 @@ public abstract class MutexService {
     protected synchronized boolean checkIfAllKeysReceived() {
         for (Boolean keyAvailable : keys.values()) {
             if (!keyAvailable) {
-                return false;
+                return false;   // atleast one key still not received
             }
         }
 
         // Reach here => all keys are received
+        // mark start of CS execution
+        executingCS.set(true);
         return true;
     }
 

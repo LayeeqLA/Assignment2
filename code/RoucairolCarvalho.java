@@ -19,7 +19,7 @@ public class RoucairolCarvalho extends MutexService {
         synchronized (this) {
             // TODO: Capture CS start
             // assert no existing CS on this node
-            for (Map.Entry<Integer, Boolean> nodeKV : super.keys.entrySet()) {
+            for (Map.Entry<Integer, Boolean> nodeKV : keys.entrySet()) {
                 if (nodeKV.getValue() == false) {
                     clock.incrementAndGet();
                     sendMessageToNode(new Message(currentNode.getId(), Message.MessageType.REQUEST, clock),
@@ -40,6 +40,14 @@ public class RoucairolCarvalho extends MutexService {
 
     @Override
     public synchronized void processIncomingRequest(Message message) {
+        if(executingCS.get()) {
+            // currently executing CS; defer the reply to this message's sender
+            deferredReplies.add(message.getSender());
+            return;
+        }
+        
+        
+
         // TODO Auto-generated method stub
         System.out.println("Unimplemented method 'processIncomingRequest'");
     }
