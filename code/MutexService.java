@@ -76,6 +76,7 @@ public abstract class MutexService {
         // Reach here => all keys are received
         // mark start of CS execution
         csExecuting.set(true);
+        csRequestPending.set(false);
         csInfo = new CritSecInfo(currentNode.getId(), clock.incrementAndGet());
         return true;
     }
@@ -92,19 +93,22 @@ public abstract class MutexService {
     protected synchronized void sendMessageToNode(Message msg, int destinationNodeId)
             throws IOException, ClassNotFoundException {
         MessageInfo messageInfo = MessageInfo.createOutgoing(null, 0);
+        msg.print(" Destination: " + destinationNodeId + " ---->SENT");
         Node.getNodeById(allNodes, destinationNodeId).getChannel().send(msg.toByteBuffer(), messageInfo);
     }
 
     protected synchronized void sendReply(int destinationNodeId) throws IOException, ClassNotFoundException {
+        // discard key
+        keys.put(destinationNodeId, false);
         // increment clock first for piggyback
         Message reply = new Message(currentNode.getId(), Message.MessageType.REPLY, clock.incrementAndGet());
         sendMessageToNode(reply, destinationNodeId);
     }
 
     protected synchronized void sendRequest(int destinationNodeId) throws IOException, ClassNotFoundException {
-        clock.incrementAndGet(); // increment first for piggyback
-        Message reply = new Message(currentNode.getId(), Message.MessageType.REQUEST, csCurrentRequestTime);
-        sendMessageToNode(reply, destinationNodeId);
+        clock.incrementAndGet();
+        Message request = new Message(currentNode.getId(), Message.MessageType.REQUEST, csCurrentRequestTime);
+        sendMessageToNode(request, destinationNodeId);
     }
 
     protected synchronized void sendDeferredReplies() throws IOException, ClassNotFoundException {

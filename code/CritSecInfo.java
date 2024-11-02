@@ -27,6 +27,6 @@ public class CritSecInfo {
     }
 
     public void print() {
-        System.out.println("CRITICAL SECTION: [NodeID: " + nodeId + "] Start: " + start + " End: " + end);
+        System.out.println("=====>CRITICAL SECTION: [NodeID: " + nodeId + "] Start: " + start + " End: " + end);
     }
 }

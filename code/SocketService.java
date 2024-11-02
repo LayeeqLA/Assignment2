@@ -100,7 +100,7 @@ public class SocketService implements Runnable {
                     }
                     synchronized (mutexService) {
                         System.out.println("Received message");
-                        message.print();
+                        message.print("  <----RCVD");
                         switch (message.getMsgType()) {
                             case REQUEST:
                                 mutexService.processIncomingRequest(message);

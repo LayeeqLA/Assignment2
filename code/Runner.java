@@ -56,11 +56,8 @@ public class Runner {
 
             System.out.println("\n*****Starting connectivity activies*****");
             CountDownLatch latch = new CountDownLatch(2);
-            // boolean initializeAsActive = nodeId == Constants.BASE_NODE;
-            // LocalState localState = new LocalState(0, false, nodeCount);
             Thread receiverThread = new Thread(new SocketService(currentNode,
                     mutexService, latch), "RECV-SRVC");
-            // TODO: add param MutexService?
             receiverThread.start();
 
             for (Node node : currentNode.getNeighbors()) {
