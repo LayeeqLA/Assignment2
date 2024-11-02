@@ -96,6 +96,7 @@ public class Runner {
 
             // Wait for all application requests to finish
             applicationThread.join();
+            currentNode.closeFileWriter();
 
             // Wait for all local CS requests to finish
             // TODO: csService.shutdown();
@@ -110,26 +111,26 @@ public class Runner {
             // WAIT FOR SNAPSHOT TO INFORM TERMINATION OF SYSTEM
             // localState.getTerminationLatch().await();
 
-            if (currentNode.getParent() == null) {
-                // ROOT sends FINISH to terminate the system
-                Message finishMessage = new Message(currentNode.getId(), Message.MessageType.FINISH, null);
-                for (Node node : currentNode.getChildren()) {
-                    MessageInfo messageInfo = MessageInfo.createOutgoing(null, 0);
-                    node.getChannel().send(finishMessage.toByteBuffer(), messageInfo);
-                }
-                System.out.println("\n---Sent FINISH to child node if any---");
+            // if (currentNode.getParent() == null) {
+            //     // ROOT sends FINISH to terminate the system
+            //     Message finishMessage = new Message(currentNode.getId(), Message.MessageType.FINISH, null);
+            //     for (Node node : currentNode.getChildren()) {
+            //         MessageInfo messageInfo = MessageInfo.createOutgoing(null, 0);
+            //         node.getChannel().send(finishMessage.toByteBuffer(), messageInfo);
+            //     }
+            //     System.out.println("\n---Sent FINISH to child node if any---");
 
-            } else {
-                Set<Integer> childrenIdList = Arrays.stream(currentNode.getChildrenIds()).boxed()
-                        .collect(Collectors.toSet());
-                for (Node node : nodes) {
-                    if (!childrenIdList.contains(node.getId())
-                            && node != currentNode.getParent()) {
-                        System.out.println("closing connection " + currentNode.getId() + " --> " + node.getId());
-                        node.getChannel().close();
-                    }
-                }
-            }
+            // } else {
+            //     Set<Integer> childrenIdList = Arrays.stream(currentNode.getChildrenIds()).boxed()
+            //             .collect(Collectors.toSet());
+            //     for (Node node : nodes) {
+            //         if (!childrenIdList.contains(node.getId())
+            //                 && node != currentNode.getParent()) {
+            //             System.out.println("closing connection " + currentNode.getId() + " --> " + node.getId());
+            //             node.getChannel().close();
+            //         }
+            //     }
+            // }
 
             receiverThread.join(); // received FINISH from all neighbors
 
@@ -140,11 +141,14 @@ public class Runner {
             // ConsistencyChecker.checkGlobalStateConsistency(nodeCount, configPath);
             // }
 
-        } catch (NumberFormatException | IOException | InterruptedException | ClassNotFoundException e) {
+        } catch (NumberFormatException | IOException | InterruptedException e) {
             System.err.println("xxxxx---Processing error occured---xxxxx");
             System.err.println(e.getMessage());
             e.printStackTrace();
         } finally {
+            if (currentNode != null) {
+                currentNode.closeFileWriter();
+            }
             if (nodes != null) {
                 for (Node node : nodes) {
                     try {

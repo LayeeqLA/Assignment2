@@ -12,7 +12,6 @@ public class RoucairolCarvalho extends MutexService {
             // Hold key if i < j for all Pi, Pj
             this.keys.put(neighborId, currentNode.getId() < neighborId);
         }
-        System.out.println("INITIAL KEYS: " + this.keys.toString());
     }
 
     @Override
@@ -22,7 +21,8 @@ public class RoucairolCarvalho extends MutexService {
             csCurrentRequestTime = clock.incrementAndGet(); // mark clock when the CS request was observed
             System.out.println("Requesting CS at clock: " + csCurrentRequestTime);
             csRequestPending.set(true);
-            // assert no existing CS on this node
+
+            // REQUEST for key if missing
             for (Map.Entry<Integer, Boolean> nodeKV : keys.entrySet()) {
                 if (nodeKV.getValue() == false) {
                     sendRequest(nodeKV.getKey());
@@ -39,7 +39,7 @@ public class RoucairolCarvalho extends MutexService {
     public synchronized void csLeave() throws ClassNotFoundException, IOException {
         csInfo.setEnd(clock.incrementAndGet());
         csInfo.print();
-        // TODO: Flush csInfo to a file writing thread???
+        currentNode.recordCritSec(csInfo);
 
         // reset CS details
         csInfo = null;

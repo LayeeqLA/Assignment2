@@ -1,5 +1,6 @@
 package code;
 
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -17,10 +18,10 @@ public class Node {
     private SctpChannel channel;
     private int[] neighborIds;
     private List<Node> neighbors;
-    private Node parent;
-    private List<Node> children;
-    private int[] childrenIds;
-    FileWriter writer;
+    // private Node parent;
+    // private List<Node> children;
+    // private int[] childrenIds;
+    private BufferedWriter writer;
 
     public int getId() {
         return id;
@@ -62,33 +63,33 @@ public class Node {
         this.neighborIds = neighborIds;
     }
 
-    public Node getParent() {
-        return parent;
-    }
+    // public Node getParent() {
+    //     return parent;
+    // }
 
-    public void setParent(Node parent) {
-        this.parent = parent;
-    }
+    // public void setParent(Node parent) {
+    //     this.parent = parent;
+    // }
 
-    public List<Node> getChildren() {
-        return children;
-    }
+    // public List<Node> getChildren() {
+    //     return children;
+    // }
 
-    public void setChildren(List<Node> children) {
-        this.children = children;
-        this.childrenIds = children.stream().mapToInt(Node::getId).toArray();
-    }
+    // public void setChildren(List<Node> children) {
+    //     this.children = children;
+    //     this.childrenIds = children.stream().mapToInt(Node::getId).toArray();
+    // }
 
-    public int[] getChildrenIds() {
-        return childrenIds;
-    }
+    // public int[] getChildrenIds() {
+    //     return childrenIds;
+    // }
 
     public Node(int id, String host, int port) {
         this.id = id;
         this.host = host;
         this.port = port;
-        this.parent = null;
-        this.children = new LinkedList<>();
+        // this.parent = null;
+        // this.children = new LinkedList<>();
         this.writer = null;
     }
 
@@ -97,10 +98,10 @@ public class Node {
                 + " Neighbors: " + Arrays.toString(neighborIds));
     }
 
-    public void printConvergeCast() {
-        System.out.println("Running: ID: " + id + " Parent: " + (parent == null ? "-" : parent.getId())
-                + " Children: " + Arrays.toString(childrenIds));
-    }
+    // public void printConvergeCast() {
+    //     System.out.println("Running: ID: " + id + " Parent: " + (parent == null ? "-" : parent.getId())
+    //             + " Children: " + Arrays.toString(childrenIds));
+    // }
 
     public void setNeighbors(List<Node> nodes) {
         this.neighbors = Arrays.stream(neighborIds).mapToObj(nodes::get).collect(Collectors.toList());
@@ -118,22 +119,16 @@ public class Node {
         return neighborIds.length;
     }
 
-    public int getChildrenCount() {
-        return childrenIds.length;
-    }
-
-    public FileWriter getWriter() {
-        return writer;
-    }
+    // public int getChildrenCount() {
+    //     return childrenIds.length;
+    // }
 
     public void initWriter(String filePath) throws IOException {
-        this.writer = new FileWriter(filePath);
+        this.writer = new BufferedWriter(new FileWriter(filePath));
     }
 
-    public void writeLocalState(VectorClock clock) throws IOException {
-        this.writer.write(VectorClock.getFileString(clock));
-        this.writer.flush();
-        System.out.println("recorded state to file");
+    public void recordCritSec(CritSecInfo critSecInfo) throws IOException {
+        writer.write(critSecInfo.getFileString());
     }
 
     public void closeFileWriter() {

@@ -1,0 +1,60 @@
+package code;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+public class VerificationService {
+    
+    public static void verifyCSEntries(int nodeCount, String configPath) throws IOException {
+        /*
+         * ASSUMES NODE IDs ARE IN ORDER: 0 ... n-1
+         */
+
+        String baseOutputPath = configPath;
+        if (baseOutputPath.endsWith(".txt")) {
+            baseOutputPath = baseOutputPath.substring(0, baseOutputPath.length() - 4);
+        }
+
+        List<String> paths = new ArrayList<>();
+        for (int i = 0; i < nodeCount; i++) {
+            paths.add(baseOutputPath + "-" + i + ".out");
+        }
+
+        List<CritSecInfo> critSections = new ArrayList<>();
+        for (String path: paths) {
+            List<String> allLines = Files.readAllLines(Paths.get(path));
+            // FIX BOM encoding for UTF-16 and UTF-8 config files
+            String firstLine = allLines.get(0);
+            if (firstLine.codePointAt(0) == 0xfeff) {
+                allLines.set(0, firstLine.substring(1, firstLine.length()));
+            }
+            if ("".equalsIgnoreCase(allLines.get(allLines.size() - 1).trim())) {
+                // remove last line if blank
+                allLines.remove(allLines.size() - 1);
+            }
+            for(String csEntryLine: allLines) {
+                critSections.add(CritSecInfo.fromFileString(csEntryLine));
+            }
+        }
+
+        Collections.sort(critSections, Comparator.comparingLong(csInfo -> csInfo.getStart()));
+        System.out.println(critSections);
+
+        for (int i=0; i<critSections.size()-1; i++) {
+            if(critSections.get(i).getEnd() >= critSections.get(i+1).getStart()) {
+                System.out.println("---CRITICAL SECTION VIOLATION FOUND---");
+                System.out.println(critSections.get(i));
+                System.out.println(critSections.get(i+1));
+                return;
+            }
+        }
+
+        System.out.println("---NO CRITICAL SECTION VIOLATIONS FOUND---");
+    }
+
+}

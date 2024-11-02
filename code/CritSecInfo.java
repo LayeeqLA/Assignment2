@@ -1,6 +1,7 @@
 package code;
 
 public class CritSecInfo {
+    private static String delimiter = "---";
     private int nodeId;
     private long start;
     private long end;
@@ -10,23 +11,36 @@ public class CritSecInfo {
         this.start = start;
     }
 
-    public long getStart() {
-        return start;
+    public static CritSecInfo fromFileString(String csString) {
+        String[] parts = csString.split(delimiter);
+        CritSecInfo csInfo = new CritSecInfo(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+        csInfo.setEnd(Integer.parseInt(parts[2]));
+        return csInfo;
     }
 
-    // public void setStart(long start) {
-    //     this.start = start;
-    // }
+    public long getStart() {
+    return start;
+    }
 
     public long getEnd() {
-        return end;
+    return end;
     }
 
     public void setEnd(long end) {
         this.end = end;
     }
 
+    @Override
+    public String toString() {
+        return "=====>CRITICAL SECTION: [NodeID: " + nodeId + "] Start: " + start + " End: " + end;
+    }
+
     public void print() {
-        System.out.println("=====>CRITICAL SECTION: [NodeID: " + nodeId + "] Start: " + start + " End: " + end);
+        System.out.println(this.toString());
+    }
+
+    public String getFileString() {
+        return new StringBuffer().append(nodeId).append(delimiter).append(start)
+                .append(delimiter).append(end).toString();
     }
 }
