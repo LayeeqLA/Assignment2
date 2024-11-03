@@ -23,6 +23,7 @@ public class Message implements Serializable {
         REQUEST,
         REPLY,
         FINISH,
+        TERMINATE,
         ;
 
     }
@@ -97,6 +98,7 @@ public class Message implements Serializable {
                 System.out.println("Sender: " + sender + " MsgType: " + msgType + " Clock: " + clock);
                 break;
             case FINISH:
+            case TERMINATE:
                 System.out.println("Sender: " + sender + " MsgType: " + msgType);
                 break;
         }
@@ -109,6 +111,7 @@ public class Message implements Serializable {
                 System.out.println("Sender: " + sender + " MsgType: " + msgType + " Clock: " + clock + postfix);
                 break;
             case FINISH:
+            case TERMINATE:
                 System.out.println("Sender: " + sender + " MsgType: " + msgType + postfix);
                 break;
         }

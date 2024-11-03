@@ -33,8 +33,8 @@ public class ApplicationService implements Runnable {
                 // Wait for duration before next request
                 // TODO: exponential distribution
                 Thread.sleep(meanInterRequestDelay);
-
             }
+
         } catch (InterruptedException | IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

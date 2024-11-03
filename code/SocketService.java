@@ -99,7 +99,7 @@ public class SocketService implements Runnable {
                         // SHOULD RECEIVE SAME SENDER PID ON A SINGLE THREAD
                     }
                     synchronized (mutexService) {
-                        System.out.println("Received message");
+                        // System.out.println("Received message");
                         message.print("  <----RCVD");
                         switch (message.getMsgType()) {
                             case REQUEST:
@@ -108,8 +108,11 @@ public class SocketService implements Runnable {
                             case REPLY:
                                 mutexService.processIncomingReply(message);
                                 break;
-                            default:
-                                System.out.println(message.getMsgType() + " unexpected!");
+                            case FINISH:
+                                mutexService.processIncomingFinish(message);
+                                break;
+                            case TERMINATE:
+                                mutexService.processIncomingTerminate(message);
                                 receiving = false;
                                 break;
                         }

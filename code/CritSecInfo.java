@@ -19,11 +19,11 @@ public class CritSecInfo {
     }
 
     public long getStart() {
-    return start;
+        return start;
     }
 
     public long getEnd() {
-    return end;
+        return end;
     }
 
     public void setEnd(long end) {
@@ -41,6 +41,6 @@ public class CritSecInfo {
 
     public String getFileString() {
         return new StringBuffer().append(nodeId).append(delimiter).append(start)
-                .append(delimiter).append(end).toString();
+                .append(delimiter).append(end).append(System.lineSeparator()).toString();
     }
 }

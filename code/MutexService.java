@@ -2,8 +2,10 @@ package code;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -15,6 +17,7 @@ public abstract class MutexService {
     protected ScalarClock clock;
     protected Node currentNode;
     protected List<Node> allNodes;
+    protected Set<Integer> finishedNodes;
     protected Map<Integer, Boolean> keys;
     protected List<Integer> deferredReplies;
     protected AtomicBoolean csExecuting; // true if node is currently in CS
@@ -31,6 +34,9 @@ public abstract class MutexService {
         this.csExecuting = new AtomicBoolean(false);
         this.csRequestPending = new AtomicBoolean(false);
         this.csInfo = null;
+        if (currentNode.getId() == Constants.BASE_NODE) {
+            this.finishedNodes = new HashSet<>();
+        }
     }
 
     public static boolean validateMutexProtocolString(String protocolString) {
@@ -62,9 +68,19 @@ public abstract class MutexService {
 
     public abstract void csLeave() throws IOException, ClassNotFoundException;
 
-    public abstract void processIncomingRequest(Message message) throws ClassNotFoundException, IOException;
+    public abstract void processIncomingRequest(Message message) throws IOException, ClassNotFoundException;
 
     public abstract void processIncomingReply(Message message);
+
+    public void processIncomingFinish(Message message) {
+        finishedNodes.add(message.getSender());
+    }
+
+    public void processIncomingTerminate(Message message) throws IOException {
+        for (Node node : currentNode.getNeighbors()) {
+            node.getChannel().close();
+        }
+    }
 
     protected synchronized boolean checkIfAllKeysReceived() {
         for (Boolean keyAvailable : keys.values()) {
@@ -111,6 +127,18 @@ public abstract class MutexService {
         sendMessageToNode(request, destinationNodeId);
     }
 
+    protected synchronized void sendFinish() throws IOException, ClassNotFoundException {
+        // increment clock first for piggyback
+        Message finish = new Message(currentNode.getId(), Message.MessageType.FINISH, clock.incrementAndGet());
+        sendMessageToNode(finish, Constants.BASE_NODE);
+    }
+
+    protected synchronized void sendTerminate(int destinationNodeId) throws IOException, ClassNotFoundException {
+        // increment clock first for piggyback
+        Message terminate = new Message(currentNode.getId(), Message.MessageType.TERMINATE, clock.incrementAndGet());
+        sendMessageToNode(terminate, destinationNodeId);
+    }
+
     protected synchronized void sendDeferredReplies() throws IOException, ClassNotFoundException {
         for (int destinationNodeId : deferredReplies) {
             sendReply(destinationNodeId);
@@ -122,4 +150,22 @@ public abstract class MutexService {
         System.out.println("CURRENT CLOCK---> " + clock.getCurrent());
     }
 
+    public void shutdown() throws IOException, ClassNotFoundException {
+        if (currentNode.getId() == Constants.BASE_NODE) {
+            finishedNodes.add(Constants.BASE_NODE);
+
+            // block until we get FINISH from all nodes
+            while (finishedNodes.size() != allNodes.size())
+                ;
+
+            // send terminate to all others
+            for (int neighborId : currentNode.getNeighborIds()) {
+                sendTerminate(neighborId);
+            }
+
+        } else {
+            // send finish to BASE NODE 0
+            sendFinish();
+        }
+    }
 }

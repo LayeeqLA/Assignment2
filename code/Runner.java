@@ -97,51 +97,21 @@ public class Runner {
             // Wait for all application requests to finish
             applicationThread.join();
             currentNode.closeFileWriter();
+            mutexService.shutdown(); // for processing termination of system
+            receiverThread.join();
 
-            // Wait for all local CS requests to finish
-            // TODO: csService.shutdown();
-
-            // if (currentNode.getParent() == null) {
-            // Thread.sleep(10000);
-            // SnapshotStarter.snapshotDelay = snapshotDelay;
-            // new Thread(new SnapshotStarter(localState, currentNode),
-            // "SNAP-SRVC").start();
-            // }
-
-            // WAIT FOR SNAPSHOT TO INFORM TERMINATION OF SYSTEM
-            // localState.getTerminationLatch().await();
-
-            // if (currentNode.getParent() == null) {
-            //     // ROOT sends FINISH to terminate the system
-            //     Message finishMessage = new Message(currentNode.getId(), Message.MessageType.FINISH, null);
-            //     for (Node node : currentNode.getChildren()) {
-            //         MessageInfo messageInfo = MessageInfo.createOutgoing(null, 0);
-            //         node.getChannel().send(finishMessage.toByteBuffer(), messageInfo);
-            //     }
-            //     System.out.println("\n---Sent FINISH to child node if any---");
-
-            // } else {
-            //     Set<Integer> childrenIdList = Arrays.stream(currentNode.getChildrenIds()).boxed()
-            //             .collect(Collectors.toSet());
-            //     for (Node node : nodes) {
-            //         if (!childrenIdList.contains(node.getId())
-            //                 && node != currentNode.getParent()) {
-            //             System.out.println("closing connection " + currentNode.getId() + " --> " + node.getId());
-            //             node.getChannel().close();
-            //         }
-            //     }
-            // }
-
-            receiverThread.join(); // received FINISH from all neighbors
+            if (nodeId == Constants.BASE_NODE) {
+                System.out.println("\n***STARTING VERIFICATION***\n");
+                VerificationService.verifyCSEntries(nodeCount, configPath);
+            }
 
             System.out.println("\n*****END*****\n\n");
 
-            // TODO: Replace with CS safety checker
-            // if (currentNode.getParent() == null) {
-            // ConsistencyChecker.checkGlobalStateConsistency(nodeCount, configPath);
-            // }
+            if (nodeId == Constants.BASE_NODE) {
+                VerificationService.verifyCSEntries(nodeCount, configPath);
+            }
 
-        } catch (NumberFormatException | IOException | InterruptedException e) {
+        } catch (NumberFormatException | IOException | InterruptedException | ClassNotFoundException e) {
             System.err.println("xxxxx---Processing error occured---xxxxx");
             System.err.println(e.getMessage());
             e.printStackTrace();

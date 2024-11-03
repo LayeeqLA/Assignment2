@@ -1,9 +1,10 @@
 # four g l o b a l parameter s ( s e e above )
-# 3 20 10 1000
-3 20 10 10
+# 4 20 10 1000
+4 20 10 100
 
 0 localhost 53390 # Domain Name and port of node 0
 1 localhost 53355 # Domain Name and port of node 1
 2 localhost 53346 # Domain Name and port of node 2
+3 localhost 53347 # Domain Name and port of node 3
 
     bla bla blaaaaaaaa  
