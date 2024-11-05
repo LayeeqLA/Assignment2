@@ -1,16 +1,17 @@
 #!/bin/bash
 
 # Code adapted from posted example by Jordan Frimpter
+# Updated by Layeeq
 # Command to grant permission to file to run [RUN THIS]: chmod +x cleanup.sh
 
 # Change this to your netid [CHANGE THIS]
 netid=lxa230013
 
 # Root directory of project [CHANGE THIS]
-PROJDIR=/home/012/l/lx/lxa230013/aos/Assignment1
+PROJDIR=/home/012/l/lx/lxa230013/aos/Assignment2
 
 # Directory where the config file is located on your local system [CHANGE THIS]
-CONFIGLOCAL=/home/012/l/lx/lxa230013/aos/Assignment1/config.txt
+CONFIGLOCAL=/home/012/l/lx/lxa230013/aos/Assignment2/config.txt
 
 # extension for hosts [CHANGE THIS if using a different host system (setting to "" should suffice)]
 hostExtension="utdallas.edu"

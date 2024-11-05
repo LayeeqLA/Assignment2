@@ -1,19 +1,42 @@
 #!/bin/bash
 
 # Code adapted from posted example by Jordan Frimpter
+# Updated by Layeeq
 # Command to grant permission to file to run [RUN THIS]: chmod +x launcher.sh
+
+
+# VERIFY IF VALID MUTEX PROTOCOL PROVIDED FOR RUNNING
+if [ $# -ne 1 ]; then
+  echo "Error: You must pass exactly one argument corresponding to Mutex Protocol."
+  exit 1
+fi
+
+# Get the argument
+PROTOCOL=$1
+
+# Check if the argument is "RA" or "RC"
+if [ "$PROTOCOL" == "RA" ] || [ "$PROTOCOL" == "RC" ]; then
+  echo "Mutex Protocol provided: $PROTOCOL"
+else
+  echo "Error: Invalid Mutex Protocol. Please pass either 'RA' or 'RC'."
+  exit 1
+fi
+
 
 # Change this to your netid [CHANGE THIS]
 netid=lxa230013
 
 # Root directory of project [CHANGE THIS]
-PROJDIR=/home/012/l/lx/lxa230013/aos/Assignment1
+PROJDIR=/home/012/l/lx/lxa230013/aos/Assignment2
 
 # Directory where the config file is located on your local system [CHANGE THIS]
-CONFIGLOCAL=/home/012/l/lx/lxa230013/aos/Assignment1/config.txt
+CONFIGLOCAL=/home/012/l/lx/lxa230013/aos/Assignment2/config.txt
 
 # Directory your compiled classes are in [CHANGE THIS if you move the classes]
 BINDIR=$PROJDIR/bin
+
+# External jars if any for classpath
+LIBDIR=$PROJDIR/lib/*
 
 # Your main project class [CHANGE THIS if you rename the project]
 PROG=code.Runner
@@ -22,7 +45,7 @@ PROG=code.Runner
 hostExtension="utdallas.edu"
 
 # run command [CHANGE THIS if you want a different pattern or use a different software]
-runCommand="java -ea -cp $BINDIR $PROG $CONFIGLOCAL"
+runCommand="java -ea -cp $LIBDIR:$BINDIR $PROG $CONFIGLOCAL $PROTOCOL"
 
 # remove $CONFIGLOCAL if you don't want to give your program the configuration file path as an argument
 
