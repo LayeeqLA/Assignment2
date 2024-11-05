@@ -5,21 +5,15 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.sun.nio.sctp.MessageInfo;
 import com.sun.nio.sctp.SctpChannel;
 
 public class Runner {
-    ;
+
     private static int nodeCount = -1; // T1
     private static int meanInterRequestDelay; // T2
     private static int meanCsExecutionTime; // T3
@@ -100,14 +94,10 @@ public class Runner {
             mutexService.shutdown(); // for processing termination of system
             receiverThread.join();
 
-            if (nodeId == Constants.BASE_NODE) {
-                System.out.println("\n***STARTING VERIFICATION***\n");
-                VerificationService.verifyCSEntries(nodeCount, configPath);
-            }
-
             System.out.println("\n*****END*****\n\n");
 
             if (nodeId == Constants.BASE_NODE) {
+                System.out.println("\n***STARTING VERIFICATION***\n");
                 VerificationService.verifyCSEntries(nodeCount, configPath);
             }
 

@@ -72,7 +72,8 @@ public class RoucairolCarvalho extends MutexService {
             sendReply(senderId);
             // send request again to this node to get back key
             sendRequest(senderId);
-        } else if (message.getClock() == csCurrentRequestTime && senderId < currentNode.getId()) {
+        } else if ((message.getClock().equals(csCurrentRequestTime)) && (senderId < currentNode.getId())) {
+            System.out.println("same csReqTime; this node LOST tie breaker");
             // if same timestamp, tie break using node ID => lower ID has more priority
             sendReply(senderId);
             // send request again to this node to get back key
@@ -82,7 +83,6 @@ public class RoucairolCarvalho extends MutexService {
             // defer the reply to this message's sender
             deferredReplies.add(senderId);
         }
-
     }
 
     @Override

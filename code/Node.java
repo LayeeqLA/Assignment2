@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,9 +17,6 @@ public class Node {
     private SctpChannel channel;
     private int[] neighborIds;
     private List<Node> neighbors;
-    // private Node parent;
-    // private List<Node> children;
-    // private int[] childrenIds;
     private BufferedWriter writer;
 
     public int getId() {
@@ -63,27 +59,6 @@ public class Node {
         this.neighborIds = neighborIds;
     }
 
-    // public Node getParent() {
-    //     return parent;
-    // }
-
-    // public void setParent(Node parent) {
-    //     this.parent = parent;
-    // }
-
-    // public List<Node> getChildren() {
-    //     return children;
-    // }
-
-    // public void setChildren(List<Node> children) {
-    //     this.children = children;
-    //     this.childrenIds = children.stream().mapToInt(Node::getId).toArray();
-    // }
-
-    // public int[] getChildrenIds() {
-    //     return childrenIds;
-    // }
-
     public Node(int id, String host, int port) {
         this.id = id;
         this.host = host;
@@ -97,11 +72,6 @@ public class Node {
         System.out.println("ID: " + id + " HOST: " + host + " PORT: " + port
                 + " Neighbors: " + Arrays.toString(neighborIds));
     }
-
-    // public void printConvergeCast() {
-    //     System.out.println("Running: ID: " + id + " Parent: " + (parent == null ? "-" : parent.getId())
-    //             + " Children: " + Arrays.toString(childrenIds));
-    // }
 
     public void setNeighbors(List<Node> nodes) {
         this.neighbors = Arrays.stream(neighborIds).mapToObj(nodes::get).collect(Collectors.toList());
@@ -118,10 +88,6 @@ public class Node {
     public int getNeighborCount() {
         return neighborIds.length;
     }
-
-    // public int getChildrenCount() {
-    //     return childrenIds.length;
-    // }
 
     public void initWriter(String filePath) throws IOException {
         this.writer = new BufferedWriter(new FileWriter(filePath));

@@ -1,7 +1,6 @@
 package code;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,7 @@ public abstract class MutexService {
     protected List<Node> allNodes;
     protected Set<Integer> finishedNodes;
     protected Map<Integer, Boolean> keys;
-    protected List<Integer> deferredReplies;
+    protected Set<Integer> deferredReplies;
     protected AtomicBoolean csExecuting; // true if node is currently in CS
     protected AtomicBoolean csRequestPending; // true if application has made CS request but not yet fulfilled
     protected Long csCurrentRequestTime;
@@ -30,7 +29,7 @@ public abstract class MutexService {
         this.currentNode = currentNode;
         this.clock = new ScalarClock();
         this.keys = new ConcurrentHashMap<>();
-        this.deferredReplies = new ArrayList<>();
+        this.deferredReplies = new HashSet<>();
         this.csExecuting = new AtomicBoolean(false);
         this.csRequestPending = new AtomicBoolean(false);
         this.csInfo = null;
