@@ -2,18 +2,20 @@ package code;
 
 import java.io.IOException;
 
+import org.apache.commons.math3.distribution.ExponentialDistribution;
+
 public class ApplicationService implements Runnable {
 
     private MutexService mutexService;
-    private int meanInterRequestDelay; // T2
-    private int meanCsExecutionTime; // T3
+    private ExponentialDistribution interRequestDelay; // T2
+    private ExponentialDistribution csExecutionTime; // T3
     private int numberOfRequests; // T4
 
-    public ApplicationService(MutexService mutexService, int meanInterRequestDelay, int meanCsExecutionTime,
+    public ApplicationService(MutexService mutexService, int meanInterRequestDelay, int meanCSExecutionTime,
             int numberOfRequests) {
         this.mutexService = mutexService;
-        this.meanInterRequestDelay = meanInterRequestDelay;
-        this.meanCsExecutionTime = meanCsExecutionTime;
+        this.interRequestDelay = new ExponentialDistribution(meanInterRequestDelay);
+        this.csExecutionTime = new ExponentialDistribution(meanCSExecutionTime);
         this.numberOfRequests = numberOfRequests;
     }
 
@@ -25,14 +27,11 @@ public class ApplicationService implements Runnable {
                 requests++;
 
                 mutexService.csEnter();
-
                 executeCS(requests);
-
                 mutexService.csLeave();
 
                 // Wait for duration before next request
-                // TODO: exponential distribution
-                Thread.sleep(meanInterRequestDelay);
+                Thread.sleep((long) interRequestDelay.sample());
             }
 
         } catch (InterruptedException | IOException | ClassNotFoundException e) {
@@ -42,8 +41,7 @@ public class ApplicationService implements Runnable {
 
     private void executeCS(int requestNumber) throws InterruptedException {
         // Simulating CS execution
-        // TODO: exponential distribution
-        Thread.sleep(meanCsExecutionTime);
+        Thread.sleep((long) csExecutionTime.sample());
         System.out.println("Completed CS Request #" + requestNumber);
     }
 

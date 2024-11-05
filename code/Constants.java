@@ -15,10 +15,6 @@ public class Constants {
         return random.nextInt(max + 1 - min) + min; // min & max inclusive
     }
 
-    // public static int getRandomWait() {
-    //     return getRandomNumber(MIN_WAIT, MAX_WAIT) * 1000;
-    // }
-
     public static int getRandomBroadcastInt() {
         return getRandomNumber(MIN_RANGE, MAX_RANGE);
     }

@@ -83,7 +83,7 @@ public class Runner {
             latch.await();
             System.out.println("*****CONNECTIONS READY*****\n");
 
-            Thread.sleep(6000); // TODO: waiting for other nodes to also connect if delayed
+            Thread.sleep(6000); // waiting for other nodes to also connect if delayed
             Thread applicationThread = new Thread(new ApplicationService(mutexService,
                     meanInterRequestDelay, meanCsExecutionTime, numberOfRequests), "APPL-SRVC");
             applicationThread.start();
@@ -97,7 +97,7 @@ public class Runner {
             System.out.println("\n*****END*****\n\n");
 
             if (nodeId == Constants.BASE_NODE) {
-                System.out.println("\n***STARTING VERIFICATION***\n");
+                System.out.println("***STARTING VERIFICATION***");
                 VerificationService.verifyCSEntries(nodeCount, configPath);
             }
 

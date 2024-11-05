@@ -43,7 +43,6 @@ public class VerificationService {
         }
 
         Collections.sort(critSections, Comparator.comparingLong(csInfo -> csInfo.getStart()));
-        System.out.println(critSections);
 
         for (int i = 0; i < critSections.size() - 1; i++) {
             if (critSections.get(i).getEnd() >= critSections.get(i + 1).getStart()) {
@@ -54,7 +53,7 @@ public class VerificationService {
             }
         }
 
-        System.out.println("---MUTEX VERIFIED: NO CS VIOLATION---");
+        System.out.println("---MUTEX VERIFIED: NO CS VIOLATION---\n");
     }
 
     public static void main(String[] args) throws IOException {
