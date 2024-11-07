@@ -11,7 +11,7 @@ import java.util.List;
 
 public class VerificationService {
 
-    public static void verifyCSEntries(int nodeCount, String configPath) throws IOException {
+    public static void verifyCSEntries(int nodeCount, String protocol, String configPath) throws IOException {
         /*
          * ASSUMES NODE IDs ARE IN ORDER: 0 ... n-1
          */
@@ -56,24 +56,36 @@ public class VerificationService {
 
         System.out.println("---MUTEX VERIFIED: NO CS VIOLATION---\n");
 
-        calculateAndStoreResults(baseOutputPath, nodeCount, critSections);
+        calculateAndStoreResults(baseOutputPath, nodeCount, protocol, critSections);
     }
 
-    private static void calculateAndStoreResults(String baseOutputPath, int nodeCount, List<CritSecInfo> critSections) {
+    private static void calculateAndStoreResults(String baseOutputPath, int nodeCount, String protocol,
+            List<CritSecInfo> critSections) {
         double meanResponseTime = 0;
         double msgCount = 0;
+        double csExecuted = critSections.size();
+        long systemStartTime = Long.MAX_VALUE;
+        long systemEndTime = Long.MIN_VALUE;
+
         for (CritSecInfo csInfo : critSections) {
             meanResponseTime += (csInfo.getEndTime() - csInfo.getRequestTime());
             msgCount += csInfo.getMessageCount();
+            systemStartTime = Long.min(systemStartTime, csInfo.getStartTime());
+            systemEndTime = Long.max(systemEndTime, csInfo.getEndTime());
         }
-        System.out.println("MEAN RESPONSE TIME: " + meanResponseTime / critSections.size());
-        System.out.println("MESSAGE COMPLEXITY: " + msgCount / critSections.size());
+        System.out.println("MESSAGE COMPLEXITY: " + msgCount / csExecuted);
+        System.out.println("AVG RESPONSE TIME: " + meanResponseTime / csExecuted);
+        System.out.println("THROUGHPUT: " + csExecuted * 1000 / (double) (systemEndTime - systemStartTime));
 
         try {
-            FileWriter writer = new FileWriter(baseOutputPath + "-" + System.currentTimeMillis() + ".txt");
-            writer.write("CS count: " + critSections.size() + System.lineSeparator());
-            writer.write("MEAN RESPONSE TIME: " + (meanResponseTime / critSections.size()) + System.lineSeparator());
-            writer.write("MESSAGE COMPLEXITY: " + (msgCount / critSections.size()) + System.lineSeparator());
+            FileWriter writer = new FileWriter(
+                    baseOutputPath + "-" + protocol + "-" + System.currentTimeMillis() + ".txt");
+            writer.write("PROTOCOL: " + protocol + System.lineSeparator());
+            writer.write("CS COUNT: " + csExecuted + System.lineSeparator());
+            writer.write("MESSAGE COMPLEXITY: " + (msgCount / csExecuted) + System.lineSeparator());
+            writer.write("AVG RESPONSE TIME: " + (meanResponseTime / csExecuted) + System.lineSeparator());
+            writer.write("THROUGHPUT: " + csExecuted * 1000 / (double) (systemEndTime - systemStartTime)
+                    + System.lineSeparator());
             writer.close();
         } catch (IOException e) {
             System.out.println("Failed to write results to file");
@@ -87,10 +99,11 @@ public class VerificationService {
             System.err.println("Need exactly TWO args!");
             System.exit(-1);
         }
-        int nodeCount = Integer.parseInt(args[0]);
-        String configPath = args[1];
-
-        verifyCSEntries(nodeCount, configPath);
+        String configPath = args[0];
+        String protocol = args[1];
+        int nodeCount = Integer.parseInt(args[2]);
+        MutexService.validateMutexProtocolString(protocol);
+        verifyCSEntries(nodeCount, protocol, configPath);
 
     }
 

@@ -98,7 +98,7 @@ public class Runner {
 
             if (nodeId == Constants.BASE_NODE) {
                 System.out.println("***STARTING VERIFICATION***");
-                VerificationService.verifyCSEntries(nodeCount, configPath);
+                VerificationService.verifyCSEntries(nodeCount, protocol, configPath);
             }
 
         } catch (NumberFormatException | IOException | InterruptedException | ClassNotFoundException e) {
