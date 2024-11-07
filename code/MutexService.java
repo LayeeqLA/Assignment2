@@ -21,8 +21,7 @@ public abstract class MutexService {
     protected Set<Integer> deferredReplies;
     protected AtomicBoolean csExecuting; // true if node is currently in CS
     protected AtomicBoolean csRequestPending; // true if application has made CS request but not yet fulfilled
-    protected Long csCurrentRequestTime;
-    protected CritSecInfo csInfo; // TODO: merge csCurrentRequestTime into csInfo?
+    protected CritSecInfo csInfo;
 
     protected MutexService(List<Node> nodes, Node currentNode) {
         this.allNodes = nodes;
@@ -90,9 +89,10 @@ public abstract class MutexService {
 
         // Reach here => all keys are received
         // mark start of CS execution
+        long startTime = System.currentTimeMillis();
         csExecuting.set(true);
         csRequestPending.set(false);
-        csInfo = new CritSecInfo(currentNode.getId(), clock.incrementAndGet());
+        csInfo.setStartInfo(clock.incrementAndGet(), startTime);
         return true;
     }
 
@@ -122,7 +122,7 @@ public abstract class MutexService {
 
     protected synchronized void sendRequest(int destinationNodeId) throws IOException, ClassNotFoundException {
         clock.incrementAndGet();
-        Message request = new Message(currentNode.getId(), Message.MessageType.REQUEST, csCurrentRequestTime);
+        Message request = new Message(currentNode.getId(), Message.MessageType.REQUEST, csInfo.getRequestClock());
         sendMessageToNode(request, destinationNodeId);
     }
 

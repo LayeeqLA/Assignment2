@@ -17,9 +17,11 @@ public class RoucairolCarvalho extends MutexService {
     @Override
     public void csEnter() throws IOException, ClassNotFoundException {
         synchronized (this) {
+            long csCurrentRequestTime = System.currentTimeMillis();
             assert !csExecuting.get(); // should not be executing
-            csCurrentRequestTime = clock.incrementAndGet(); // mark clock when the CS request was observed
-            System.out.println("Requesting CS at clock: " + csCurrentRequestTime);
+            long csCurrentRequestClock = clock.incrementAndGet(); // mark clock when the CS request was observed
+            System.out.println("Requesting CS at clock: " + csCurrentRequestClock);
+            csInfo = new CritSecInfo(currentNode.getId(), csCurrentRequestClock, csCurrentRequestTime);
             csRequestPending.set(true);
 
             // REQUEST for key if missing
@@ -37,13 +39,12 @@ public class RoucairolCarvalho extends MutexService {
 
     @Override
     public synchronized void csLeave() throws ClassNotFoundException, IOException {
-        csInfo.setEnd(clock.incrementAndGet());
+        csInfo.setEndInfo(clock.incrementAndGet(), System.currentTimeMillis());
         csInfo.print();
         currentNode.recordCritSec(csInfo);
 
         // reset CS details
         csInfo = null;
-        csCurrentRequestTime = null;
 
         sendDeferredReplies();
         assert csExecuting.getAndSet(false); // should be executing before stoping
@@ -66,7 +67,8 @@ public class RoucairolCarvalho extends MutexService {
             return;
         }
 
-        assert csCurrentRequestTime != null;
+        long csCurrentRequestTime = csInfo.getRequestClock();
+        assert csCurrentRequestTime != 0;
         if (message.getClock() < csCurrentRequestTime) {
             // incoming request has lower TS, allow it to execute first
             sendReply(senderId);

@@ -42,10 +42,10 @@ public class VerificationService {
             }
         }
 
-        Collections.sort(critSections, Comparator.comparingLong(csInfo -> csInfo.getStart()));
+        Collections.sort(critSections, Comparator.comparingLong(csInfo -> csInfo.getStartClock()));
 
         for (int i = 0; i < critSections.size() - 1; i++) {
-            if (critSections.get(i).getEnd() >= critSections.get(i + 1).getStart()) {
+            if (critSections.get(i).getEndClock() >= critSections.get(i + 1).getStartClock()) {
                 System.out.println("---CRITICAL SECTION VIOLATION FOUND---");
                 critSections.get(i).print();
                 critSections.get(i + 1).print();
