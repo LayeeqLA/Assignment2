@@ -121,20 +121,24 @@ public abstract class MutexService {
     }
 
     protected synchronized void sendRequest(int destinationNodeId) throws IOException, ClassNotFoundException {
-        clock.incrementAndGet();
-        Message request = new Message(currentNode.getId(), Message.MessageType.REQUEST, csInfo.getRequestClock());
+        if (csInfo != null) {
+            // for capturing message complexity when a CS Request initiated
+            csInfo.incrementMessageCount();
+        }
+        Message request = new Message(currentNode.getId(), Message.MessageType.REQUEST, csInfo.getRequestClock(),
+                clock.incrementAndGet());
         sendMessageToNode(request, destinationNodeId);
     }
 
     protected synchronized void sendFinish() throws IOException, ClassNotFoundException {
         // increment clock first for piggyback
-        Message finish = new Message(currentNode.getId(), Message.MessageType.FINISH, clock.incrementAndGet());
+        Message finish = new Message(currentNode.getId(), Message.MessageType.FINISH, null, clock.incrementAndGet());
         sendMessageToNode(finish, Constants.BASE_NODE);
     }
 
     protected synchronized void sendTerminate(int destinationNodeId) throws IOException, ClassNotFoundException {
         // increment clock first for piggyback
-        Message terminate = new Message(currentNode.getId(), Message.MessageType.TERMINATE, clock.incrementAndGet());
+        Message terminate = new Message(currentNode.getId(), Message.MessageType.TERMINATE, null, clock.incrementAndGet());
         sendMessageToNode(terminate, destinationNodeId);
     }
 

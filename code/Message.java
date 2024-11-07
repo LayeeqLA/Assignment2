@@ -11,12 +11,21 @@ import java.nio.ByteBuffer;
 public class Message implements Serializable {
     private Integer sender;
     private MessageType msgType;
-    private Long clock;
+    private Long systemClock;
+    private Long protocolClock;
 
-    public Message(Integer senderId, MessageType msgType, Long clock) {
+    public Message(Integer senderId, MessageType msgType, Long protocolClock, Long systemClock) {
         this.sender = senderId;
         this.msgType = msgType;
-        this.clock = clock;
+        this.systemClock = systemClock;
+        this.protocolClock = protocolClock;
+    }
+
+    public Message(Integer senderId, MessageType msgType, Long commonClock) {
+        this.sender = senderId;
+        this.msgType = msgType;
+        this.systemClock = commonClock;
+        this.protocolClock = commonClock;
     }
 
     public enum MessageType {
@@ -44,8 +53,12 @@ public class Message implements Serializable {
         this.msgType = mType;
     }
 
-    public Long getClock() {
-        return clock;
+    public Long getSystemClock() {
+        return systemClock;
+    }
+
+    public Long getProtocolClock() {
+        return protocolClock;
     }
 
     // Convert current instance of Message to ByteBuffer
@@ -95,7 +108,7 @@ public class Message implements Serializable {
         switch (msgType) {
             case REQUEST:
             case REPLY:
-                System.out.println("Sender: " + sender + " MsgType: " + msgType + " Clock: " + clock);
+                System.out.println("Sender: " + sender + " MsgType: " + msgType + " Clock: " + protocolClock);
                 break;
             case FINISH:
             case TERMINATE:
@@ -108,7 +121,7 @@ public class Message implements Serializable {
         switch (msgType) {
             case REQUEST:
             case REPLY:
-                System.out.println("Sender: " + sender + " MsgType: " + msgType + " Clock: " + clock + postfix);
+                System.out.println("Sender: " + sender + " MsgType: " + msgType + " Clock: " + protocolClock + postfix);
                 break;
             case FINISH:
             case TERMINATE:

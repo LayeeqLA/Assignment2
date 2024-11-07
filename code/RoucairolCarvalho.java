@@ -17,12 +17,11 @@ public class RoucairolCarvalho extends MutexService {
     @Override
     public void csEnter() throws IOException, ClassNotFoundException {
         synchronized (this) {
-            long csCurrentRequestTime = System.currentTimeMillis();
             assert !csExecuting.get(); // should not be executing
             long csCurrentRequestClock = clock.incrementAndGet(); // mark clock when the CS request was observed
             System.out.println("Requesting CS at clock: " + csCurrentRequestClock);
-            csInfo = new CritSecInfo(currentNode.getId(), csCurrentRequestClock, csCurrentRequestTime);
             csRequestPending.set(true);
+            csInfo = new CritSecInfo(currentNode.getId(), csCurrentRequestClock, System.currentTimeMillis());
 
             // REQUEST for key if missing
             for (Map.Entry<Integer, Boolean> nodeKV : keys.entrySet()) {
@@ -52,7 +51,7 @@ public class RoucairolCarvalho extends MutexService {
 
     @Override
     public synchronized void processIncomingRequest(Message message) throws ClassNotFoundException, IOException {
-        clock.mergeMessageClockAndIncrement(message.getClock());
+        clock.mergeMessageClockAndIncrement(message.getSystemClock());
         int senderId = message.getSender();
 
         if (csExecuting.get()) {
@@ -69,12 +68,12 @@ public class RoucairolCarvalho extends MutexService {
 
         long csCurrentRequestTime = csInfo.getRequestClock();
         assert csCurrentRequestTime != 0;
-        if (message.getClock() < csCurrentRequestTime) {
+        if (message.getProtocolClock() < csCurrentRequestTime) {
             // incoming request has lower TS, allow it to execute first
             sendReply(senderId);
             // send request again to this node to get back key
             sendRequest(senderId);
-        } else if ((message.getClock().equals(csCurrentRequestTime)) && (senderId < currentNode.getId())) {
+        } else if ((message.getProtocolClock().equals(csCurrentRequestTime)) && (senderId < currentNode.getId())) {
             System.out.println("same csReqTime; this node LOST tie breaker");
             // if same timestamp, tie break using node ID => lower ID has more priority
             sendReply(senderId);
@@ -89,7 +88,11 @@ public class RoucairolCarvalho extends MutexService {
 
     @Override
     public synchronized void processIncomingReply(Message message) {
-        clock.mergeMessageClockAndIncrement(message.getClock());
+        if (csInfo != null) {
+            // for capturing message complexity when a CS Request initiated
+            csInfo.incrementMessageCount();
+        }
+        clock.mergeMessageClockAndIncrement(message.getSystemClock());
         keys.put(message.getSender(), true);
     }
 

@@ -1,5 +1,6 @@
 package code;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -54,6 +55,31 @@ public class VerificationService {
         }
 
         System.out.println("---MUTEX VERIFIED: NO CS VIOLATION---\n");
+
+        calculateAndStoreResults(baseOutputPath, nodeCount, critSections);
+    }
+
+    private static void calculateAndStoreResults(String baseOutputPath, int nodeCount, List<CritSecInfo> critSections) {
+        double meanResponseTime = 0;
+        double msgCount = 0;
+        for (CritSecInfo csInfo : critSections) {
+            meanResponseTime += (csInfo.getEndTime() - csInfo.getRequestTime());
+            msgCount += csInfo.getMessageCount();
+        }
+        System.out.println("MEAN RESPONSE TIME: " + meanResponseTime / critSections.size());
+        System.out.println("MESSAGE COMPLEXITY: " + msgCount / critSections.size());
+
+        try {
+            FileWriter writer = new FileWriter(baseOutputPath + "-" + System.currentTimeMillis() + ".txt");
+            writer.write("CS count: " + critSections.size() + System.lineSeparator());
+            writer.write("MEAN RESPONSE TIME: " + (meanResponseTime / critSections.size()) + System.lineSeparator());
+            writer.write("MESSAGE COMPLEXITY: " + (msgCount / critSections.size()) + System.lineSeparator());
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Failed to write results to file");
+            e.printStackTrace();
+        }
+
     }
 
     public static void main(String[] args) throws IOException {

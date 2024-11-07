@@ -9,9 +9,10 @@ public class CritSecInfo {
     private long requestTime;
     private long startTime;
     private long endTime;
+    private int msgCount;
 
     public CritSecInfo(int nodeId, long requestClock, long startClock, long endClock,
-            long requestTime, long startTime, long endTime) {
+            long requestTime, long startTime, long endTime, int msgCount) {
         this.nodeId = nodeId;
         this.requestClock = requestClock;
         this.startClock = startClock;
@@ -19,6 +20,7 @@ public class CritSecInfo {
         this.requestTime = requestTime;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.msgCount = msgCount;
     }
 
     public CritSecInfo(int nodeId, long requestClock, long requestTime) {
@@ -41,7 +43,7 @@ public class CritSecInfo {
         String[] parts = csString.split(delimiter);
         CritSecInfo csInfo = new CritSecInfo(Integer.parseInt(parts[0]), Long.parseLong(parts[1]),
                 Long.parseLong(parts[2]), Long.parseLong(parts[3]), Long.parseLong(parts[4]),
-                Long.parseLong(parts[5]), Long.parseLong(parts[6]));
+                Long.parseLong(parts[5]), Long.parseLong(parts[6]), Integer.parseInt(parts[7]));
         return csInfo;
     }
 
@@ -69,10 +71,18 @@ public class CritSecInfo {
         return endTime;
     }
 
+    public int getMessageCount() {
+        return msgCount;
+    }
+
+    public synchronized void incrementMessageCount() {
+        msgCount++;
+    }
+
     @Override
     public String toString() {
         return "=====>CRITICAL SECTION: [NodeID: " + nodeId + "] Request: " + requestClock
-                + " Start: " + startClock + " End: " + endClock;
+                + " Start: " + startClock + " End: " + endClock + " Messages: " + msgCount;
     }
 
     public void print() {
@@ -86,6 +96,7 @@ public class CritSecInfo {
                 .append(endClock).append(delimiter)
                 .append(requestTime).append(delimiter)
                 .append(startTime).append(delimiter)
-                .append(endTime).append(System.lineSeparator()).toString();
+                .append(endTime).append(delimiter)
+                .append(msgCount).append(System.lineSeparator()).toString();
     }
 }
